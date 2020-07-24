@@ -5,18 +5,18 @@
 byte S_ZERO = 34;   //Initial sensor
 byte S_30 = 35;     //30m sensor
 byte S_100 = 25;    //100m sensor
-byte S_C1 = 32;     //1st sensor on the curve
-byte S_C2 = 33;     //2nd sensor on the curve
+byte S_C1 = 32;     //1st sensor on the corner
+byte S_C2 = 33;     //2nd sensor on the corner
 //Debug Pins
-byte LED = 2;       //LED for debug
+byte LED = 2;       //LED for debugging
 
 /*Data Structures*/
 typedef struct
 {
-    volatile unsigned long int time_in_30;
-    volatile unsigned long int time_c_start;
-    volatile unsigned long int time_c_end; 
-    volatile unsigned long int time_in_100;
+    volatile unsigned long time_in_30;
+    volatile unsigned long time_c_start;
+    volatile unsigned long time_c_end; 
+    volatile unsigned long time_in_100;
     
 } packet_ble;       //Package type to send by bluetooth
 
@@ -29,10 +29,10 @@ run_state ss_r = START_;    //Initial secondary/run state setting
 
 packet_ble data;            //Package to send by bluetooth
 bool interrupt = false;     //Autoral support boolean to interrupt functions
-unsigned long int t_curr = 0;   //Current initial time, updated every run
-volatile unsigned long int t_30 = 0, t_c1 = 0, t_c2 = 0, t_100 = 0;     //Time variables
+unsigned long t_curr = 0;   //Current initial time, updated every run
+volatile unsigned long t_30 = 0, t_c1 = 0, t_c2 = 0, t_100 = 0;     //Time variables
        
-/*Functions*/
+/*Function Prototypes*/
 void isr_30m();     //30m interrupt
 void isr_c1();      //Start of curve interrupt
 void isr_c2();      //End of curve interrupt
