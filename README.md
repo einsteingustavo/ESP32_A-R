@@ -1,2 +1,2 @@
 # ESP32_A-R
-Acceleration and Resumption code for tests using ESP32 DOIT board.
+Acceleration and recovery code for tests using the DOIT ESP32 Devkit board and arduino framework.
