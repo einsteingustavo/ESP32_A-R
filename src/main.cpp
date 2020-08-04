@@ -13,73 +13,79 @@
 #define CHARACTERISTIC_UUID_TX  "0972EF8C-7613-4075-AD52-756F33D4DA91"
 
 /*Classes*/
-class CharacteristicCallbacks: public BLECharacteristicCallbacks {
-     void onWrite(BLECharacteristic *characteristic) {
-          std::string rxValue = characteristic->getValue(); //Return pointer to the register that contains actual value of characteristics
-          if (rxValue.length() > 0) //Verify if data exists
-          {
-              for (int i = 0; i < rxValue.length(); i++) {
-             Serial.print(rxValue[i]);
-               }
-               Serial.println();
+class CharacteristicCallbacks: public BLECharacteristicCallbacks 
+{
+    void onWrite(BLECharacteristic *characteristic) 
+    {
+        std::string rxValue = characteristic->getValue(); //Return pointer to the register that contains actual value of characteristics
+        if (rxValue.length() > 0) //Verify if data exists
+        {
+            for (int i = 0; i < rxValue.length(); i++) 
+            {
+                Serial.print(rxValue[i]);
+            }
+            Serial.println();
               
-               if (rxValue.find("STR") != -1) 
-               { 
-                    ss_r = START_;
-               }
-               else if (rxValue.find("RST") != -1) 
-               {
-                    ss = RUN;
-                    ss_r = START_;
-               }
+            if (rxValue.find("STR") != -1) 
+            { 
+                ss = RUN;
+                ss_r = START_;
+            }
+           else if (rxValue.find("RST") != -1) 
+           {
+                ss_r = START_;
+           }
                
-               else if (rxValue.find("SVE") != -1) 
-               { 
-                    saveFlag = true;
-                    saveComm = true;
-               }
-               else if (rxValue.find("NSV") != -1) 
-               {
-                    saveFlag = false;
-                    saveComm = true;    
-               }
-               else if (rxValue.find("TCV") != -1) 
-               {
-                   String tempCVT;
-                   for (int i = 0; i < rxValue.length(); i++)
-                   {
-                       tempCVT[i] = rxValue[i];
-                   }
-                   data.tempCVT = tempCVT.toFloat();
-               }
-               else if (rxValue.find("TMT") != -1) 
-               {
-                   String tempMTR;
-                   for (int i = 0; i < rxValue.length(); i++)
-                   {
-                       tempMTR[i] = rxValue[i];
-                   }
-                   data.tempMTR = tempMTR.toFloat();
-               }
-               else if (rxValue.find("NOF") != -1) 
-               {
-                    for (int i = 3; i < rxValue.length(); i++)
-                   {
-                       run_fileName[i-3] = rxValue[i];
-                   }   
-               }
-          }
-     }//onWrite
+            else if (rxValue.find("SVE") != -1) 
+            { 
+                saveFlag = true;
+                saveComm = true;
+            }
+           else if (rxValue.find("NSV") != -1) 
+            {
+                saveFlag = false;
+                saveComm = true;    
+            }
+            else if (rxValue.find("TCV") != -1) 
+            {
+               String tempCVT;
+               for (int i = 0; i < rxValue.length(); i++)
+                {
+                    tempCVT[i] = rxValue[i];
+                }
+                data.tempCVT = tempCVT.toFloat();
+            }
+            else if (rxValue.find("TMT") != -1) 
+            {
+               String tempMTR;
+               for (int i = 0; i < rxValue.length(); i++)
+                {
+                   tempMTR[i] = rxValue[i];
+                }
+                data.tempMTR = tempMTR.toFloat();
+            }
+            else if (rxValue.find("NOF") != -1) 
+            {
+                for (int i = 3; i < rxValue.length(); i++)
+                {
+                    run_fileName[i-3] = rxValue[i];
+                } 
+            }
+        }
+    }//onWrite
 };
 
-class ServerCallbacks: public BLEServerCallbacks {
-    void onConnect(BLEServer* pServer) {
- deviceConnected = true;
+class ServerCallbacks: public BLEServerCallbacks 
+{
+    void onConnect(BLEServer* pServer) 
+    {
+        deviceConnected = true;
     };
  
-    void onDisconnect(BLEServer* pServer) {
- deviceConnected = false;
-    }
+    void onDisconnect(BLEServer* pServer) 
+    {
+        deviceConnected = false;
+    };
 };
 
 /*Pins*/
@@ -93,6 +99,7 @@ byte S_C2 = 33;     //2nd sensor on the corner
 byte SD_CS = 5;
 //Debug Pins
 byte LED = 2;       //LED for debugging
+byte extLED = 4;    //External LED for debugging
 
 /*Data Structures*/
 typedef struct
@@ -109,10 +116,10 @@ typedef struct
 /*Variables*/
 BLECharacteristic *characteristicTX; //Object to send data to client
 bool deviceConnected = false; //Autoral support boolean to check if device is connected 
-typedef enum {RUN, SAVE}  state;     //Main states
+typedef enum {IDLE,RUN, SAVE}  state;     //Main states
 typedef enum {START_, WAIT_30, WAIT_C1, WAIT_C2, WAIT_100, END_RUN} run_state;  //Secondary/run states
 
-state ss = RUN;       //Initial main state setting
+state ss = IDLE;       //Initial main state setting
 run_state ss_r = START_;    //Initial secondary/run state setting
 
 packet_ble data;            //Package to send by bluetooth
@@ -137,6 +144,7 @@ void setup()
     Serial.begin(9600);     //Serial with 9600 baud rate
     //Pin setups
     pinMode(LED,OUTPUT);
+    pinMode(extLED,OUTPUT);
     pinMode(S_ZERO, INPUT_PULLUP);
     pinMode(S_30, INPUT_PULLUP);
     pinMode(S_100, INPUT_PULLUP);
@@ -153,6 +161,17 @@ void loop()     //Main loop
 {   
     switch (ss)     //Switch for main states
     {
+        case IDLE:
+            if(deviceConnected)
+            {
+                char txString[50];
+                sprintf(txString,"IDLE State, waiting for START command...");
+                characteristicTX->setValue(txString); //Set the value for the characteristics will notify(send) 
+                characteristicTX->notify(); // Send the value to the smartphone
+                delay(1000);
+            }
+        break;
+
         case RUN:
             switch (ss_r)   //Switch for secondary/run states
             {               
@@ -274,19 +293,22 @@ void loop()     //Main loop
                 characteristicTX->notify(); // Send the value to the smartphone
                 saveNotify = true;
             }
-            if (saveFlag == true && saveComm == true) {
-            if (!SD.exists("/AR_runs/")) {
-                SD.mkdir("/AR_runs/"); //Create directory to save the runs
-            }
-            File f = SD.open(run_fileName);        //Open file to save data
-            f.print(data.time_in_30); f.print(" ,"); f.print(data.time_c_start); f.print(" ,"); f.print(data.time_c_end); f.print(" ,"); f.print(data.time_in_100); f.print(" ,"); f.print(data.tempCVT); f.print(" ,"); f.print(data.tempMTR);//Print data to file
-            f.close();
-            saveComm = false;
-            ss = RUN;
-            }
-            if (saveFlag == false && saveComm == true) {
+            if (saveFlag == true && saveComm == true) 
+            {
+                if (!SD.exists("/AR_runs/")) 
+                {
+                    SD.mkdir("/AR_runs/"); //Create directory to save the runs
+                }
+                File f = SD.open(run_fileName);        //Open file to save data
+                f.print(data.time_in_30); f.print(", "); f.print(data.time_c_start); f.print(", "); f.print(data.time_c_end); f.print(", "); f.print(data.time_in_100); f.print(", "); f.print(data.tempCVT); f.print(", "); f.print(data.tempMTR);//Print data to file
+                f.close();
                 saveComm = false;
-                ss = RUN;
+                ss = IDLE;
+            }
+            if (saveFlag == false && saveComm == true) 
+            {
+                saveComm = false;
+                ss = IDLE;
             }
             break;
     }
