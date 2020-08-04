@@ -180,7 +180,7 @@ void loop()     //Main loop
                     if (!interrupt && (ss_r == WAIT_30))    //If interrupt isn't active and this is the current state
                     {
                         interrupt = true;   //Set the support boolean
-                        attachInterrupt(digitalPinToInterrupt(S_30), isr_30m, RISING); //Attach interrupt
+                        attachInterrupt(digitalPinToInterrupt(S_30), isr_30m, FALLING); //Attach interrupt
                     }
                     else
                     {
@@ -201,7 +201,7 @@ void loop()     //Main loop
                     if (((millis()- t_curr) - t_30 >  1000) && !interrupt && (ss_r == WAIT_C1)) //If at least one second has passed and interrupt isn't active and this is the current state
                     {
                         interrupt = true;   //Set the support boolean
-                        attachInterrupt(digitalPinToInterrupt(S_C1), isr_c1, RISING);   //Attach interrupt
+                        attachInterrupt(digitalPinToInterrupt(S_C1), isr_c1, FALLING);   //Attach interrupt
                     }
                     else
                     {
@@ -221,7 +221,7 @@ void loop()     //Main loop
                     if (((millis()- t_curr) - t_c1 >  1000) && !interrupt && (ss_r == WAIT_C2)) //If at least one second has passed and interrupt isn't active and this is the current state
                     {
                         interrupt = true;   //Set the support boolean
-                        attachInterrupt(digitalPinToInterrupt(S_C2), isr_c2, RISING);   //Attach interrupt
+                        attachInterrupt(digitalPinToInterrupt(S_C2), isr_c2, FALLING);   //Attach interrupt
                     }
                     else
                     {   
@@ -240,7 +240,7 @@ void loop()     //Main loop
                     if (((millis()- t_curr) - t_c2 >  1000) && !interrupt && (ss_r == WAIT_100))    //If at least one secont has passed and interrupt isn't active and this is the current state
                     {
                         interrupt = true;   //Set the support boolean
-                        attachInterrupt(digitalPinToInterrupt(S_100), isr_100m, RISING);    //Attach interrupt
+                        attachInterrupt(digitalPinToInterrupt(S_100), isr_100m, FALLING);    //Attach interrupt
                     }
                     else
                     {
